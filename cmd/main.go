@@ -6,7 +6,6 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/wojtekwanczyk/github-review-bot/pkg/config"
 	"github.com/wojtekwanczyk/github-review-bot/pkg/github"
 	"github.com/wojtekwanczyk/github-review-bot/pkg/webex"
 )
@@ -25,11 +24,17 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		log.Errorf("Cannot decode request: %s", err)
 	}
 
-	log.Infof("Request data: %+v", hookData)
+	log.Infof("Hook Data: %+v", hookData)
 
-	for _, user := range hookData.PullRequest.RequestedReviewers {
-		if roomID, ok := config.RoomMapping[user.Login]; ok {
-			webex.SendMessage("Test message", roomID)
-		}
+	// TODO: This logic must be rechecked in later phase
+	if hookData.Action == "submitted" && hookData.Review.ID != 0 {
+		webex.NotifyComment(&hookData)
+	} else if hookData.Action == "opened" {
+		webex.NotifyNewPr(&hookData.PullRequest)
+	} else if hookData.Action == "synchronize" {
+		webex.NotifyPrUpdated(&hookData.PullRequest)
+	} else {
+		log.Errorf("Unknown action: %s", hookData.Action)
 	}
+
 }

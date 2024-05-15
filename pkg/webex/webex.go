@@ -18,8 +18,8 @@ func init() {
 
 func SendMessage(text, RoomID string) error {
 	msgRequest := &webex.MessageCreateRequest{
-		Text:   text,
-		RoomID: RoomID,
+		Markdown: text,
+		RoomID:   RoomID,
 	}
 
 	log.Debugf("Message request: %+v", *msgRequest)
